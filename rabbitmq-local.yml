@@ -1,0 +1,33 @@
+version: '3'
+services:
+
+  rabbitmq:
+    # use the official RabbitMQ management image, 
+    # which is lightweight and supports both amd64 and arm64 architectures
+    image: 'rabbitmq:3.13-management-alpine'
+    restart: always  # if the container stops or crashes, it will automatically restart
+    ports: 
+      - '5672:5672'       # external RabbitMQ's AMQP port (application port)
+      - '15672:15672'     # external RabbitMQ's management interface (Web UI) port
+    environment:
+      RABBITMQ_DEFAULT_USER: "worker"       # default user name: worker
+      RABBITMQ_DEFAULT_PASS: "worker"       # default password: worker
+      RABBITMQ_DEFAULT_VHOST: "/"            # default virtual host: /
+    networks:
+      - dev                          
+
+  flower:
+    # use Flower image to monitor Celery task queue status (supports amd64 / arm64)
+    image: mher/flower:2.0
+    command: ["celery", "--broker=amqp://worker:worker@rabbitmq", "flower", "--port=5555"]
+    # restart: always  # if the container stops or crashes, it will automatically restart
+    # # start Flower, set RabbitMQ as broker, and listen on port 5555
+    ports: 
+      - 5555:5555                           # map Flower's monitoring interface port to host
+    depends_on:
+      - rabbitmq                           # ensure RabbitMQ starts before Flower
+    networks:
+      - dev                     
+
+networks:
+  dev:
