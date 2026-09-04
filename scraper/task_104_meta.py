@@ -46,11 +46,11 @@ def scrape_104_jobs(search_term="資料工程師", page="1"):
     # print(data)   
     for job in data:
         try:
-            # raw location = city + district
             details = {
                 "source_job_id": extract_104_id(job["link"]["job"]),
                 "job_title": job["jobName"],
                 "company": job["custName"],
+                # raw location = city + district
                 "raw_location": job["jobAddrNoDesc"],
                 "experience": job["jobRo"] if "jobRo" in job else None,
                 "remote":job["remoteWorkType"] if "remoteWorkType" in job else None,
