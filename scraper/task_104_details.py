@@ -16,7 +16,7 @@ def fetch_job_details(job_id):
             "date_posted": details.get('data', {}).get("appearDate"),
             "education": details["data"]["condition"]["edu"],
             "industry": details["data"]["industry"],
-            "location": details["data"]["addressArea"],
+            "location": details["data"]["jobDetail"]["addressArea"],
             "job_description": details["data"]["jobDetail"]["jobDescription"],
         }
         return job_details

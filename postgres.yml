@@ -1,0 +1,44 @@
+services:
+
+  db:
+    image: postgres:17-alpine
+    restart: always
+    # set shared memory limit when using docker compose
+    shm_size: 128mb
+    environment:
+      POSTGRES_DB: tw_jobs # this defines the first database that will be created when the container starts
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: hamsterisstrong # password for the "user" role (the bootstrap superuser)
+      # non-superuser role for the app + migrations (see infra/db/init/01-create-app-user.sh)
+      APP_DB_USER: ${APP_DB_USER:-app}
+      APP_DB_PASSWORD: ${APP_DB_PASSWORD:?set APP_DB_PASSWORD in .env}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./infra/db/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d tw_jobs"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - my_network
+
+  adminer:
+    image: adminer:6
+    restart: always
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+    # Uncomment to share the external network defined in rabbitmq-network.yml
+    networks:
+      - my_network
+
+volumes:
+  pgdata:
+
+networks:
+  my_network:
+    external: true
